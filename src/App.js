@@ -1,4 +1,4 @@
-import { groupBy, map, sumBy, uniqBy } from "lodash";
+import { groupBy, map, sumBy } from "lodash";
 import moment from "moment";
 import { lots, products } from "./data";
 import "./styles.css";
@@ -52,8 +52,6 @@ const formatProduct = (product) => {
     lunchbag: false
   };
 };
-const uniqByDLC = uniqBy(lotsByDate, "dlc");
-const groupByDLC = groupBy(lotsByDate, "formattedDlc");
 
 // group lots by dlc
 // so if there are 2 lots with the same dlc, we count it as 1
