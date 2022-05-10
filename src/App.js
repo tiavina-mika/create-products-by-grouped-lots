@@ -2,6 +2,7 @@ import { groupBy, map, sumBy } from "lodash";
 import moment from "moment";
 import { lots, products } from "./data";
 import "./styles.css";
+import { createProductionItemsToDispatch } from "./utils";
 
 // just to format the dlc date to human date
 const lotsByDate = lots.map((l) => ({
@@ -13,44 +14,48 @@ const lotsByDate = lots.map((l) => ({
 const dispatchDate = 1652227200000;
 
 // the product format to send to the api
-const formatProduct = (product) => {
-  const productImages = product.appImage;
-  const type = "SubcontractorProduct";
+const formatProducts = (products) => {
+  const formattedProducts = products.map((product) => {
+    const productImages = product.appImage;
+    const type = "SubcontractorProduct";
 
-  return {
-    itemId: product.objectId,
-    itemType: type,
-    createdAt: product.createdAt,
-    updatedAt: product.updatedAt,
-    name: product.name,
-    commercialName: product.commercialName,
-    brand: product.brand,
-    uniqueCode: product.uniqueCode,
-    itemBrand: product.brands || [product.brand],
-    productType: product.type,
-    internalTag: product.internalTag,
-    image:
-      Array.isArray(productImages) && productImages.length > 0
-        ? productImages[0]
-        : productImages,
-    rating: product.rating,
-    nutriscore:
-      (product.nutritionInformation &&
-        product.nutritionInformation.nutriscore) ||
-      null,
-    subcontractor:
-      type === "SubcontractorProduct" && product.subcontractor
-        ? product.subcontractor.name
-        : null,
-    price: product.price,
-    foodcost: product.foodcost || product.totalCost,
-    season: product.season,
-    expectedProduction: product.expectedProduction,
-    nationalSend: true,
-    sendCapital: true,
-    smallRetail: true,
-    lunchbag: false
-  };
+    return {
+      itemId: product.objectId,
+      itemType: type,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+      name: product.name,
+      commercialName: product.commercialName,
+      brand: product.brand,
+      dlc: product.dlc,
+      uniqueCode: product.uniqueCode,
+      itemBrand: product.brands || [product.brand],
+      productType: product.type,
+      internalTag: product.internalTag,
+      image:
+        Array.isArray(productImages) && productImages.length > 0
+          ? productImages[0]
+          : productImages,
+      rating: product.rating,
+      nutriscore:
+        (product.nutritionInformation &&
+          product.nutritionInformation.nutriscore) ||
+        null,
+      subcontractor:
+        type === "SubcontractorProduct" && product.subcontractor
+          ? product.subcontractor.name
+          : null,
+      price: product.price,
+      foodcost: product.foodcost || product.totalCost,
+      season: product.season,
+      expectedProduction: product.expectedProduction,
+      nationalSend: true,
+      sendCapital: true,
+      smallRetail: true,
+      lunchbag: false
+    };
+  });
+  return formattedProducts;
 };
 
 // group lots by dlc
@@ -81,7 +86,7 @@ for (const lot of groupedLotsByDLC) {
 const brand = "FOODCHERI";
 const data = {
   saleDate: dispatchDate,
-  products: productsByLots.map(formatProduct),
+  products: formatProducts(productsByLots),
   brand,
   user: "tiavinamika@gmail.com",
   siteId: "xxxxxxx"
@@ -90,6 +95,17 @@ const data = {
 console.log("groupedLotsByDLC", groupedLotsByDLC);
 console.log("productsByLots", productsByLots);
 console.log("final data", data);
+
+// this function is called from server side
+const newProducts = createProductionItemsToDispatch(
+  data.saleDate,
+  data.products,
+  data.brand,
+  data.user,
+  data.siteId
+);
+
+console.log("newProducts", newProducts);
 
 // const now = moment()
 // const productionDate = moment.utc(now).add(6, "days").startOf("day").valueOf()
